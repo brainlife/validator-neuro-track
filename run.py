@@ -25,24 +25,21 @@ directions = None
 
 def validate_tck(config):
     # TODO - Not sure how to even validate tck files
-    try:
-
+        """
         print("running mrinfo")
         info = subprocess.check_output(["mrinfo", config], shell=False)
         results['t1_mrinfo'] = info  # deprecated
         results['mrinfo'] = info
-
-        info_lines = info.split("\n")
         
-        # check # of streamlines
-        tck = nib.streamlines.load(config)
-        tg = tck.tractogram
-        streamlines = tg.streamlines
-        if len(streamlines) == 0:
-            results['errors'].append('tck file has no streamlines!')
-
-    except subprocess.CalledProcessError as err:
-        results['errors'].append("mrinfo failed on tck. error code: " + str(err.returncode))
+        info_lines = info.split("\n")
+        """
+    # check # of streamlines
+    tck = nib.streamlines.load(config)
+    tg = tck.tractogram
+    streamlines = tg.streamlines
+    if len(streamlines) == 0:
+        results['errors'].append('tck file has no streamlines!')
+   
 
 validate_tck(config['track'])
 
