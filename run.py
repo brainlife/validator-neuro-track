@@ -41,6 +41,9 @@ with open(config['track']) as f:
         if k == "count" and v == "0":
             results['errors'].append('tck file has no streamlines!')
 
+#TODO - normalize
+os.symlink(config['track'], "track.tck")
+
 with open("products.json", "w") as fp:
     json.dump([results], fp)
 
