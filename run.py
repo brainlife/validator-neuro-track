@@ -44,6 +44,9 @@ with open(config['track']) as f:
 #TODO - normalize
 os.symlink(config['track'], "track.tck")
 
+#products.json is deprecated (exists for backward compatibility)
 with open("products.json", "w") as fp:
     json.dump([results], fp)
 
+with open("product.json", "w") as fp:
+    json.dump(results, fp)
