@@ -41,12 +41,19 @@ with open(config['track']) as f:
         if k == "count" and v == "0":
             results['errors'].append('tck file has no streamlines!')
 
+if not os.path.exists("output"):
+    os.mkdir("output")
+
 #TODO - normalize
-os.symlink(config['track'], "track.tck")
+if os.path.lexists("output/track.tck"):
+    os.remove("output/track.tck")
+os.symlink("../"+config['track'], "output/track.tck")
 
 #products.json is deprecated (exists for backward compatibility)
-with open("products.json", "w") as fp:
-    json.dump([results], fp)
+#with open("products.json", "w") as fp:
+#    json.dump([results], fp)
 
 with open("product.json", "w") as fp:
     json.dump(results, fp)
+
+
