@@ -10,7 +10,7 @@ import codecs
 with open('config.json') as config_json:
     config = json.load(config_json)
 
-results = {"headers": {}, "errors": [], "warnings": []}
+results = {"headers": {}, "errors": [], "warnings": [], "meta": {}}
 
 directions = None
 
@@ -36,7 +36,8 @@ with open(config['track']) as f:
         tokens = line.split(":")
         k=tokens[0].strip()
         v=tokens[1].strip()
-        results['headers'][k] = v
+        results['headers'][k] = v #should we deprecate this?
+        results['meta'][k] = v
 
         if k == "count" and v == "0":
             results['errors'].append('tck file has no streamlines!')
@@ -52,6 +53,8 @@ os.symlink("../"+config['track'], "output/track.tck")
 #products.json is deprecated (exists for backward compatibility)
 #with open("products.json", "w") as fp:
 #    json.dump([results], fp)
+
+results["meta"]["validator_version"] = "1.0";
 
 with open("product.json", "w") as fp:
     json.dump(results, fp)
