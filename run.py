@@ -31,7 +31,7 @@ track = nib.streamlines.load(config["track"], lazy_load=True)
 results["meta"] = track.header
 
 print("sampling streamlines")
-streamlines = list(itertools.islice(track.streamlines, 50000))
+streamlines = list(itertools.islice(track.streamlines, 25000))
 
 print("streamlines into visualizer")
 stream_actor = actor.line(streamlines)
