@@ -31,7 +31,7 @@ track = nib.streamlines.load(config["track"], lazy_load=True)
 results["meta"] = track.header
 
 print("sampling streamlines")
-streamlines = list(itertools.islice(track.streamlines, 10000))
+streamlines = list(itertools.islice(track.streamlines, 50000))
 
 print("streamlines into visualizer")
 stream_actor = actor.line(streamlines)
@@ -81,7 +81,7 @@ for v in range(len(views)):
 
     encoded = base64.b64encode(open(out_name, "rb").read()).decode('utf-8')
     if views[v] == "sagittal_left":
-        results["brainlife"].append({ "type": "image/png", "name": views[v], "base64": encoded, "desc": "10000 samples"})
+        results["brainlife"].append({ "type": "image/png", "name": views[v], "base64": encoded, "desc": "50000 samples"})
 
     # append information for file list for json output
     #temp_dict = {}
