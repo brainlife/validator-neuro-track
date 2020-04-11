@@ -30,6 +30,7 @@ print("loading track")
 track = nib.streamlines.load(config["track"], lazy_load=True)
 results["meta"] = track.header
 
+#to reduce the memory and walltime, we need to sub-sample the streamlines to show
 print("sampling streamlines")
 streamlines = list(itertools.islice(track.streamlines, 50000))
 
@@ -77,11 +78,13 @@ for v in range(len(views)):
     # save pngs
     print("Creating tractogram png of view %s" %views[v])
     out_name = 'secondary/'+views[v]+'.jpg'
-    window.record(renderer,out_path=out_name,size=(600,600),reset_camera=False)
+    window.record(renderer,out_path=out_name,size=(700,700),reset_camera=False)
 
     encoded = base64.b64encode(open(out_name, "rb").read()).decode('utf-8')
-    #if views[v] == "sagittal_left":
-    results["brainlife"].append({ "type": "image/jpg", "name": views[v], "base64": encoded, "desc": "50k samples"})
+
+    #TODO - we will remove this - as all images will be displayed from secondary
+    if views[v] == "sagittal_left":
+        results["brainlife"].append({ "type": "image/jpg", "name": views[v], "base64": encoded, "desc": "50k samples"})
 
     # append information for file list for json output
     #temp_dict = {}
