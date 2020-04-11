@@ -76,12 +76,12 @@ for v in range(len(views)):
 
     # save pngs
     print("Creating tractogram png of view %s" %views[v])
-    out_name = 'secondary/'+views[v]+'.png'
+    out_name = 'secondary/'+views[v]+'.jpg'
     window.record(renderer,out_path=out_name,size=(600,600),reset_camera=False)
 
     encoded = base64.b64encode(open(out_name, "rb").read()).decode('utf-8')
-    if views[v] == "sagittal_left":
-        results["brainlife"].append({ "type": "image/png", "name": views[v], "base64": encoded, "desc": "50k samples"})
+    #if views[v] == "sagittal_left":
+    results["brainlife"].append({ "type": "image/jpg", "name": views[v], "base64": encoded, "desc": "50k samples"})
 
     # append information for file list for json output
     #temp_dict = {}
