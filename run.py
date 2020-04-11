@@ -74,9 +74,9 @@ for v in range(len(views)):
     out_name = 'secondary/'+views[v]+'.png'
     window.record(renderer,out_path=out_name,size=(800,800),reset_camera=False)
 
-    encoded = base64.b64encode(open(out_name, "rb").read())
+    encoded = base64.b64encode(open(out_name, "rb").read()).decode('utf-8')
     if views[v] == "sagittal_left":
-        results["brainlife"].append({ "type": "image/png", "name": views[v], "base64": str(encoded)})
+        results["brainlife"].append({ "type": "image/png", "name": views[v], "base64": encoded})
 
     # append information for file list for json output
     #temp_dict = {}
