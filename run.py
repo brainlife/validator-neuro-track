@@ -26,10 +26,10 @@ vdisplay.start()
 results = {"errors": [], "warnings": [], "meta": {}}
 
 print("loading track")
-track = nib.streamlines.load(config["track"])
+track = nib.streamlines.load(config["track"], lazy_load=False)
 results["meta"] = track.header
 print("loading streamlines into visualizer")
-stream_actor = actor.line(track.streamlines)
+stream_actor = actor.line(track.streamlines[:5000])
 
 #print(track.header)
 results["meta"]["_dtype"] = str(results["meta"]["_dtype"])
@@ -76,7 +76,7 @@ for v in range(len(views)):
 
     encoded = base64.b64encode(open(out_name, "rb").read()).decode('utf-8')
     if views[v] == "sagittal_left":
-        results["brainlife"].append({ "type": "image/png", "name": views[v], "base64": encoded})
+        results["brainlife"].append({ "type": "image/png", "name": views[v], "base64": encoded, "desc": "5000 samples})
 
     # append information for file list for json output
     #temp_dict = {}
