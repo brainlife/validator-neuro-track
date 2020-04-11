@@ -7,6 +7,7 @@ import nibabel as nib
 from dipy.viz import window, actor
 from xvfbwrapper import Xvfb
 import base64
+import itertools
 
 with open('config.json') as config_json:
     config = json.load(config_json)
@@ -28,8 +29,12 @@ results = {"errors": [], "warnings": [], "meta": {}}
 print("loading track")
 track = nib.streamlines.load(config["track"], lazy_load=True)
 results["meta"] = track.header
-print("loading streamlines into visualizer")
-stream_actor = actor.line(track.streamlines[:10000])
+
+print("sampling streamlines")
+streamlines = list(itertools.islice(track.streamlines, 10000))
+
+print("streamlines into visualizer")
+stream_actor = actor.line(streamlines)
 
 #print(track.header)
 results["meta"]["_dtype"] = str(results["meta"]["_dtype"])
