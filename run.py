@@ -97,7 +97,8 @@ for v in range(len(views)):
 
 vdisplay.stop()
 
-results["meta"]["validator_version"] = "1.0";
+#we should rely on service_branch associated with datasetproduct
+#results["meta"]["validator_version"] = "1.0";
 
 with open("product.json", "w") as fp:
     json.dump(results, fp)
