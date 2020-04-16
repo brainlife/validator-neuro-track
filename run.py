@@ -9,7 +9,7 @@ from xvfbwrapper import Xvfb
 import base64
 import itertools
 
-with open('config.json') as config_json:
+with open('config.json', encoding='utf-8') as config_json:
     config = json.load(config_json)
 
 if not os.path.exists("output"):
