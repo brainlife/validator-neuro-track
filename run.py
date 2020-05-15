@@ -84,7 +84,7 @@ for v in range(len(views)):
 
     #TODO - we will remove this - as all images will be displayed from secondary
     if views[v] == "sagittal_left":
-        results["brainlife"].append({ "type": "image/jpg", "name": views[v], "base64": encoded, "desc": "50k samples"})
+        results["brainlife"].append({ "type": "image/jpg", "name": views[v], "base64": encoded, "desc": "Showing up to 50k streamlines"})
 
     # append information for file list for json output
     #temp_dict = {}
