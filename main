@@ -5,5 +5,5 @@
 
 set -e
 
-singularity exec -e docker://brainlife/validator-neuro-track:1.0 ./run.py
+singularity exec -e docker://brainlife/validator-neuro-track:1.0 ./validate.py
 
