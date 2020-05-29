@@ -78,20 +78,10 @@ for v in range(len(views)):
     # save pngs
     print("Creating tractogram png of view %s" %views[v])
     out_name = 'secondary/'+views[v]+'.jpg'
-    window.record(renderer,out_path=out_name,size=(700,700),reset_camera=False)
+    #window.record(renderer,out_path=out_name,size=(700,700),reset_camera=False)
+    window.record(renderer,out_path=out_name,size=(500,500))
 
     encoded = base64.b64encode(open(out_name, "rb").read()).decode('utf-8')
-
-    #TODO - we will remove this - as all images will be displayed from secondary
-    if views[v] == "sagittal_left":
-        results["brainlife"].append({ "type": "image/jpg", "name": views[v], "base64": encoded, "desc": "Showing up to 50k streamlines"})
-
-    # append information for file list for json output
-    #temp_dict = {}
-    #temp_dict["filename"]='secondary/tractogram_'+views[v]+'.png'
-    #temp_dict["name"]='Tractogram '+views[v].replace('_', ' ') + ' view'
-    #temp_dict["desc"]= 'This figure shows the '+views[v].replace('_', ' ') + ' view of the tractogram'
-    #file_list.append(temp_dict)
 
     print("%s orientation complete" %views[v])
 
