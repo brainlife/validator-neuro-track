@@ -9,6 +9,7 @@ from PIL import Image
 import itertools
 import json
 import nibabel as nib
+import numpy as np
 import os
 
 
@@ -33,6 +34,8 @@ _VIEW_PARAMS = [{'view': 'axial', 'cam_pos': (-5.58, 84.98, 467.47),
                  'focal_pnt': (-8.92, -16.15, 4.47),
                  'view_up': (0.00, 0.00, 1.00)}]
 
+_SUP_EXTS = ('.tck', '.trk')
+
 
 def add_header_properties(dictionary, header, parent_key='meta'):
     """
@@ -43,18 +46,32 @@ def add_header_properties(dictionary, header, parent_key='meta'):
     :param parent_key: (String) Key label for the dictionary.
     :return: Transformed dictionary with the new keys.
     """
-    dictionary[parent_key] = header
-    dictionary[parent_key]['_dtype'] = str(header.get('_dtype'))
-    dictionary[parent_key]['magic_number'] = str(header.get('magic_number'))
-    vox2rasmm = header.get('voxel_to_rasmm')
-    if vox2rasmm is not None:
-        dictionary[parent_key]['voxel_to_rasmm'] = vox2rasmm.tolist()
-    else:
-        dictionary[parent_key]['voxel_to_rasmm'] = str(vox2rasmm)
+    dictionary[parent_key] = {}
+    for key, val in header.items():
+        if type(val).__module__ == np.__name__:
+            if isinstance(val, np.ndarray):
+                if val.dtype.type is np.bytes_:
+                    val = val.astype(np.str)
+                dictionary[parent_key][key] = val.tolist()
+            else:
+                if isinstance(val, np.dtype):
+                    val = val.name
+                else:
+                    if val.dtype.type is np.bytes_:
+                        val = val.astype(np.str)
+                if isinstance(val, np.integer):
+                    val = int(val)
+                if isinstance(val, np.floating):
+                    val = float(val)
+                dictionary[parent_key][key] = val
+        else:
+            if isinstance(val, bytes):
+                val = val.decode('utf-8')
+            dictionary[parent_key][key] = val
     return dictionary
 
 
-def save_default_imgs(size=(500, 500), ext='jpg'):
+def save_dummy_imgs(size=(500, 500), ext='jpg'):
     """
     Function to save view images when the input file does NOT fulfill the
     requirements of the validator.
@@ -69,7 +86,7 @@ def save_default_imgs(size=(500, 500), ext='jpg'):
         img.save(out_file)
 
 
-def save_views_imgs(lines, size=(500, 500), interactive=True, ext='jpg'):
+def save_views_imgs(lines, size=(500, 500), interactive=False, ext='jpg'):
     """
     Function to save view images when the input file does fulfill the
     requirements of the validator.
@@ -114,6 +131,15 @@ def save_views_imgs(lines, size=(500, 500), interactive=True, ext='jpg'):
 
 
 if __name__ == '__main__':
+    # Initialize results dict
+    results = {'errors': [], 'warnings': [], 'meta': {}}
+
+    # Create Brainlife's output dirs if don't exist
+    if not os.path.exists('output'):
+        os.mkdir('output')
+    if not os.path.exists('secondary'):
+        os.mkdir('secondary')
+
     # Read Brainlife's config.json
     with open('config.json', encoding='utf-8') as config_json:
         config = json.load(config_json)
@@ -121,12 +147,9 @@ if __name__ == '__main__':
 
     # Get extension, so validator can manipulate .tck and .trk files
     _, ext = os.path.splitext(input_file)
-
-    # Create Brainlife's output dirs if don't exist
-    if not os.path.exists('output'):
-        os.mkdir('output')
-    if not os.path.exists('secondary'):
-        os.mkdir('secondary')
+    if ext not in _SUP_EXTS:
+        results['errors'].append('Not supported input file.')
+        save_dummy_imgs()
 
     # Brainlife setup of input file
     # Delete output symlink if doesn't exist
@@ -136,9 +159,6 @@ if __name__ == '__main__':
     # Create symlink in `output` pointing to the input file
     os.symlink('../' + input_file, symlink_fname)
 
-    # Initialize results dict
-    results = {'errors': [], 'warnings': [], 'meta': {}}
-
     # Input file management
     # Load file
     print('Loading track file...')
@@ -146,24 +166,29 @@ if __name__ == '__main__':
     # Get input file's header
     header = track.header
 
-    num_fibers = header.get('count')
+    if ext == '.tck':
+        num_fibers_tag = 'count'
+    elif ext == '.trk':
+        num_fibers_tag = 'nb_streamlines'
+    num_fibers = header.get(num_fibers_tag)
+
     if num_fibers:
         # if len(track.streamlines) != track.header["count"]:
         #    results["errors"].append("tck header count doesn't match actual fiber counts")
         num_fibers = int(num_fibers)
         if num_fibers == 0:
             results['warnings'].append('Fiber count is 0.')
-            save_default_imgs()
+            save_dummy_imgs()
         else:
             # Generate snapshots
             # To reduce the memory and wall time we need to subsample the
             # streamline to show
             print('Sampling streamlines')
             samples = list(itertools.islice(track.streamlines, 50000))
-            save_views_imgs(samples, interactive=True)
+            save_views_imgs(samples)
     else:
-        results['errors'].append('`count` key not available in header.')
-        save_default_imgs()
+        results['errors'].append("Couldn't find key in header.")
+        save_dummy_imgs()
 
     # We should rely on service_branch associated with datasetproduct
     # results['meta']['validator_version'] = '1.0'
