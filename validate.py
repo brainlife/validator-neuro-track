@@ -187,7 +187,9 @@ if __name__ == '__main__':
             samples = list(itertools.islice(track.streamlines, 50000))
             save_views_imgs(samples)
     else:
-        results['errors'].append("Couldn't find key in header.")
+        results['errors'].append(
+            'The provided "{}" file does not have the "{}" tag in the '
+            'header.'.format(ext, num_fibers_tag))
         save_dummy_imgs()
 
     # We should rely on service_branch associated with datasetproduct
