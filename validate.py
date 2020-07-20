@@ -1,8 +1,11 @@
 #!/usr/bin/python3 -u
 
 
+from dipy.tracking.utils import length
 from fury import actor, window
 from fury.optpkg import optional_package
+from nibabel.streamlines.tck import TckFile
+from nibabel.streamlines.trk import TrkFile
 from PIL import Image
 
 
@@ -34,7 +37,9 @@ _VIEW_PARAMS = [{'view': 'axial', 'cam_pos': (-5.58, 84.98, 467.47),
                  'focal_pnt': (-8.92, -16.15, 4.47),
                  'view_up': (0.00, 0.00, 1.00)}]
 
-_SUP_EXTS = ('.tck', '.trk')
+_SUP_FORMATS = [
+    {'ext': '.tck', 'fclass': TckFile, 'nfiberst': 'count'},
+    {'ext': '.trk', 'fclass': TrkFile, 'nfiberst': 'nb_streamlines'}]
 
 
 def add_header_properties(dictionary, header, parent_key='meta'):
@@ -132,7 +137,7 @@ def save_views_imgs(lines, size=(500, 500), interactive=False, ext='jpg'):
 
 if __name__ == '__main__':
     # Initialize results dict
-    results = {'errors': [], 'warnings': [], 'meta': {}}
+    results = {'errors': [], 'warnings': [], 'meta': {}, 'brainlife': []}
 
     # Create Brainlife's output dirs if don't exist
     if not os.path.exists('output'):
@@ -147,7 +152,7 @@ if __name__ == '__main__':
 
     # Get extension, so validator can manipulate .tck and .trk files
     _, ext = os.path.splitext(input_file)
-    if ext not in _SUP_EXTS:
+    if ext not in [f.get('ext') for f in _SUP_FORMATS]:
         results['errors'].append('Not supported input file.')
         save_dummy_imgs()
 
@@ -163,13 +168,19 @@ if __name__ == '__main__':
     # Load file
     print('Loading track file...')
     track = nib.streamlines.load(input_file, lazy_load=True)
+
+    fclass = [f.get('fclass') for f in _SUP_FORMATS if f.get('ext') == ext][0]
+    if not isinstance(track, fclass):
+        results['errors'].append('The provided "{}" file was built as a '
+                                 '"{}".'.format(ext, track.__class__.__name__))
+
     # Get input file's header
     header = track.header
+    # Get streamlines
+    streamlines = track.streamlines
 
-    if ext == '.tck':
-        num_fibers_tag = 'count'
-    elif ext == '.trk':
-        num_fibers_tag = 'nb_streamlines'
+    num_fibers_tag = [f.get('nfiberst') for f in _SUP_FORMATS
+                      if f.get('ext') == ext][0]
     num_fibers = header.get(num_fibers_tag)
 
     if num_fibers:
@@ -184,7 +195,7 @@ if __name__ == '__main__':
             # To reduce the memory and wall time we need to subsample the
             # streamline to show
             print('Sampling streamlines')
-            samples = list(itertools.islice(track.streamlines, 50000))
+            samples = list(itertools.islice(streamlines, 50000))
             save_views_imgs(samples)
     else:
         results['errors'].append(
@@ -197,6 +208,22 @@ if __name__ == '__main__':
 
     results = add_header_properties(results, header)
     print(results)
+
+    lengths = np.array(list(length(streamlines)), dtype=np.float).tolist()
+    graph = {
+        'type': 'plotly',
+        'name': 'Fiber length histogram',
+        'data': [{
+            'type': 'histogram',
+            'x': lengths
+        }],
+        'layout': {
+            'xaxis': {'title': 'Length'},
+            'yaxis': {'title': 'Count'},
+            'margin': {'t': 0, 'r': 0, 'l': 175, 'b': 30}
+        },
+    }
+    results['brainlife'].append(graph)
 
     with open('product.json', 'w') as fp:
         json.dump(results, fp)
