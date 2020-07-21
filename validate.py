@@ -209,13 +209,15 @@ if __name__ == '__main__':
     results = add_header_properties(results, header)
     print(results)
 
-    lengths = np.array(list(length(streamlines)), dtype=np.float).tolist()
+    lengths = np.array(list(length(streamlines)))
+    hist = np.histogram(lengths, bins='auto')
     graph = {
         'type': 'plotly',
         'name': 'Fiber length histogram',
         'data': [{
-            'type': 'histogram',
-            'x': lengths
+            'type': 'bar',
+            'x': hist[1].tolist(),
+            'y': hist[0].tolist()
         }],
         'layout': {
             'xaxis': {'title': 'Length'},
