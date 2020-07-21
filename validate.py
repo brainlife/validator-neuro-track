@@ -37,9 +37,7 @@ _VIEW_PARAMS = [{'view': 'axial', 'cam_pos': (-5.58, 84.98, 467.47),
                  'focal_pnt': (-8.92, -16.15, 4.47),
                  'view_up': (0.00, 0.00, 1.00)}]
 
-_SUP_FORMATS = [
-    {'ext': '.tck', 'fclass': TckFile, 'nfiberst': 'count'},
-    {'ext': '.trk', 'fclass': TrkFile, 'nfiberst': 'nb_streamlines'}]
+_SUP_EXTS = ('.tck', '.trk')
 
 
 def add_header_properties(dictionary, header, parent_key='meta'):
@@ -152,7 +150,7 @@ if __name__ == '__main__':
 
     # Get extension, so validator can manipulate .tck and .trk files
     _, ext = os.path.splitext(input_file)
-    if ext not in [f.get('ext') for f in _SUP_FORMATS]:
+    if ext not in _SUP_EXTS:
         results['errors'].append('Not supported input file.')
         save_dummy_imgs()
 
@@ -169,7 +167,11 @@ if __name__ == '__main__':
     print('Loading track file...')
     track = nib.streamlines.load(input_file, lazy_load=True)
 
-    fclass = [f.get('fclass') for f in _SUP_FORMATS if f.get('ext') == ext][0]
+    if ext == '.tck':
+        fclass = TckFile
+    else:
+        fclass = TrkFile
+
     if not isinstance(track, fclass):
         results['errors'].append('The provided "{}" file was built as a '
                                  '"{}".'.format(ext, track.__class__.__name__))
@@ -179,8 +181,11 @@ if __name__ == '__main__':
     # Get streamlines
     streamlines = track.streamlines
 
-    num_fibers_tag = [f.get('nfiberst') for f in _SUP_FORMATS
-                      if f.get('ext') == ext][0]
+    if ext == '.tck':
+        num_fibers_tag = 'count'
+    else:
+        num_fibers_tag = 'nb_streamlines'
+
     num_fibers = header.get(num_fibers_tag)
 
     if num_fibers:
@@ -210,19 +215,26 @@ if __name__ == '__main__':
     print(results)
 
     lengths = np.array(list(length(streamlines)))
-    hist = np.histogram(lengths, bins='auto')
+    hist, bin_edges = np.histogram(lengths, bins='auto')
+    bin_edges = np.round(bin_edges, decimals=2)
     graph = {
         'type': 'plotly',
         'name': 'Fiber length histogram',
         'data': [{
             'type': 'bar',
-            'x': hist[1].tolist(),
-            'y': hist[0].tolist()
+            'x': bin_edges.tolist(),
+            'y': hist.tolist()
         }],
         'layout': {
             'xaxis': {'title': 'Length'},
             'yaxis': {'title': 'Count'},
-            'margin': {'t': 0, 'r': 0, 'l': 175, 'b': 30}
+            'margin': {'t': 0, 'r': 0, 'l': 175, 'b': 30},
+            'annotations': [{
+                'x': float(bin_edges.max()),
+                'y': int(hist.max()),
+                'text': '# of bins = {}'.format(hist.shape[0]),
+                'showarrow': False,
+            }]
         },
     }
     results['brainlife'].append(graph)
