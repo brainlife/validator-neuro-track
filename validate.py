@@ -1,8 +1,11 @@
 #!/usr/bin/python3 -u
 
 
+from dipy.tracking.utils import length
 from fury import actor, window
 from fury.optpkg import optional_package
+from nibabel.streamlines.tck import TckFile
+from nibabel.streamlines.trk import TrkFile
 from PIL import Image
 
 
@@ -132,7 +135,7 @@ def save_views_imgs(lines, size=(500, 500), interactive=False, ext='jpg'):
 
 if __name__ == '__main__':
     # Initialize results dict
-    results = {'errors': [], 'warnings': [], 'meta': {}}
+    results = {'errors': [], 'warnings': [], 'meta': {}, 'brainlife': []}
 
     # Create Brainlife's output dirs if don't exist
     if not os.path.exists('output'):
@@ -163,13 +166,26 @@ if __name__ == '__main__':
     # Load file
     print('Loading track file...')
     track = nib.streamlines.load(input_file, lazy_load=True)
+
+    if ext == '.tck':
+        fclass = TckFile
+    else:
+        fclass = TrkFile
+
+    if not isinstance(track, fclass):
+        results['errors'].append('The provided "{}" file was built as a '
+                                 '"{}".'.format(ext, track.__class__.__name__))
+
     # Get input file's header
     header = track.header
+    # Get streamlines
+    streamlines = track.streamlines
 
     if ext == '.tck':
         num_fibers_tag = 'count'
-    elif ext == '.trk':
+    else:
         num_fibers_tag = 'nb_streamlines'
+
     num_fibers = header.get(num_fibers_tag)
 
     if num_fibers:
@@ -184,10 +200,12 @@ if __name__ == '__main__':
             # To reduce the memory and wall time we need to subsample the
             # streamline to show
             print('Sampling streamlines')
-            samples = list(itertools.islice(track.streamlines, 50000))
+            samples = list(itertools.islice(streamlines, 50000))
             save_views_imgs(samples)
     else:
-        results['errors'].append("Couldn't find key in header.")
+        results['errors'].append(
+            'The provided "{}" file does not have the "{}" tag in the '
+            'header.'.format(ext, num_fibers_tag))
         save_dummy_imgs()
 
     # We should rely on service_branch associated with datasetproduct
@@ -195,6 +213,31 @@ if __name__ == '__main__':
 
     results = add_header_properties(results, header)
     print(results)
+
+    lengths = np.array(list(length(streamlines)))
+    hist, bin_edges = np.histogram(lengths, bins='auto')
+    bin_edges = np.round(bin_edges, decimals=2)
+    graph = {
+        'type': 'plotly',
+        'name': 'Fiber length histogram',
+        'data': [{
+            'type': 'bar',
+            'x': bin_edges.tolist(),
+            'y': hist.tolist()
+        }],
+        'layout': {
+            'xaxis': {'title': 'Length'},
+            'yaxis': {'title': 'Count'},
+            'margin': {'t': 0, 'r': 0, 'l': 175, 'b': 30},
+            'annotations': [{
+                'x': float(bin_edges.max()),
+                'y': int(hist.max()),
+                'text': '# of bins = {}'.format(hist.shape[0]),
+                'showarrow': False,
+            }]
+        },
+    }
+    results['brainlife'].append(graph)
 
     with open('product.json', 'w') as fp:
         json.dump(results, fp)
