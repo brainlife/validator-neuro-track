@@ -216,7 +216,7 @@ if __name__ == '__main__':
 
     lengths = np.array(list(length(streamlines)))
     hist, bin_edges = np.histogram(lengths, bins='auto')
-    bin_edges = np.round(bin_edges, decimals=2)
+    bin_edges = bin_edges.round(decimals=2).astype(str).astype(np.float)
     graph = {
         'type': 'plotly',
         'name': 'Fiber length histogram',
@@ -226,11 +226,11 @@ if __name__ == '__main__':
             'y': hist.tolist()
         }],
         'layout': {
-            'xaxis': {'title': 'Length'},
+            'xaxis': {'title': 'Length', 'type': 'log', 'autorange': True},
             'yaxis': {'title': 'Count'},
             'margin': {'t': 0, 'r': 0, 'l': 175, 'b': 30},
             'annotations': [{
-                'x': float(bin_edges.max()),
+                'x': np.log10(float(bin_edges.max())),
                 'y': int(hist.max()),
                 'text': '# of bins = {}'.format(hist.shape[0]),
                 'showarrow': False,
