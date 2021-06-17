@@ -200,8 +200,13 @@ if __name__ == '__main__':
             # To reduce the memory and wall time we need to subsample the
             # streamline to show
             print('Sampling streamlines')
-            samples = list(itertools.islice(streamlines, 50000))
-            save_views_imgs(samples)
+            sample_indices = np.random.choice(num_fibers, size=50000,
+                                              replace=False)
+            sample_sls = []
+            for i, v in enumerate(streamlines):
+                if i in sample_indices:
+                    sample_sls.append(v)
+            save_views_imgs(sample_sls)
     else:
         results['errors'].append(
             'The provided "{}" file does not have the "{}" tag in the '
