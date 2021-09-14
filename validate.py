@@ -160,6 +160,7 @@ if __name__ == '__main__':
     if os.path.lexists(symlink_fname):
         os.remove(symlink_fname)
     # Create symlink in `output` pointing to the input file
+    print("symlinking data", input_file, "to", symlink_fname)
     os.symlink('../' + input_file, symlink_fname)
 
     # Input file management
