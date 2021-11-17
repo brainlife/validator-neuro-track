@@ -1,6 +1,5 @@
 #!/usr/bin/python3 -u
 
-
 from dipy.tracking.utils import length
 from fury import actor, window
 from fury.optpkg import optional_package
@@ -8,18 +7,15 @@ from nibabel.streamlines.tck import TckFile
 from nibabel.streamlines.trk import TrkFile
 from PIL import Image
 
-
 import itertools
 import json
 import nibabel as nib
 import numpy as np
 import os
 
-
 xvfbwrapper, has_xvfbwrapper, setup_module = optional_package('xvfbwrapper')
 if has_xvfbwrapper:
     from xvfbwrapper import Xvfb
-
 
 _VIEW_PARAMS = [{'view': 'axial', 'cam_pos': (-5.58, 84.98, 467.47),
                  'focal_pnt': (-8.92, -16.15, 4.47),
@@ -188,21 +184,23 @@ if __name__ == '__main__':
         num_fibers_tag = 'nb_streamlines'
 
     num_fibers = header.get(num_fibers_tag)
+    print(num_fibers_tag, num_fibers)
 
     if num_fibers:
-        # if len(track.streamlines) != track.header["count"]:
-        #    results["errors"].append("tck header count doesn't match actual fiber counts")
         num_fibers = int(num_fibers)
         if num_fibers == 0:
             results['warnings'].append('Fiber count is 0.')
             save_dummy_imgs()
+        elif num_fibers <= 50000:
+            sample_sls = []
+            for i, v in enumerate(streamlines):
+                sample_sls.append(v)
+            save_views_imgs(sample_sls)
         else:
             # Generate snapshots
-            # To reduce the memory and wall time we need to subsample the
-            # streamline to show
-            print('Sampling streamlines')
-            sample_indices = np.random.choice(num_fibers, size=50000,
-                                              replace=False)
+            # To reduce the memory and wall time we need to subsample the streamline to show
+            print('we have more than 50k fibers.. random sampling streamlines up to 50k')
+            sample_indices = np.random.choice(num_fibers, size=50000, replace=False)
             sample_sls = []
             for i, v in enumerate(streamlines):
                 if i in sample_indices:
@@ -212,6 +210,8 @@ if __name__ == '__main__':
         results['errors'].append(
             'The provided "{}" file does not have the "{}" tag in the '
             'header.'.format(ext, num_fibers_tag))
+
+        print("couldn't figure out num_fibers.. using dummy_img")
         save_dummy_imgs()
 
     # We should rely on service_branch associated with datasetproduct
