@@ -185,7 +185,8 @@ if __name__ == '__main__':
 
     num_fibers = header.get(num_fibers_tag)
     print(num_fibers_tag, num_fibers)
-
+    lengths = []
+    
     if num_fibers:
         num_fibers = int(num_fibers)
         if num_fibers == 0:
@@ -194,6 +195,7 @@ if __name__ == '__main__':
         elif num_fibers <= 50000:
             sample_sls = []
             for i, v in enumerate(streamlines):
+                lengths.append(list(length([v]))[0])
                 sample_sls.append(v)
             save_views_imgs(sample_sls)
         else:
@@ -203,6 +205,7 @@ if __name__ == '__main__':
             sample_indices = np.random.choice(num_fibers, size=50000, replace=False)
             sample_sls = []
             for i, v in enumerate(streamlines):
+                lengths.append(list(length([v]))[0])
                 if i in sample_indices:
                     sample_sls.append(v)
             save_views_imgs(sample_sls)
@@ -220,7 +223,6 @@ if __name__ == '__main__':
     results = add_header_properties(results, header)
     print(results)
 
-    lengths = np.array(list(length(streamlines)))
     hist, bin_edges = np.histogram(lengths, bins='auto')
     bin_edges = np.round(bin_edges, decimals=2)
     graph = {
