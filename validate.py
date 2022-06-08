@@ -7,6 +7,8 @@ from nibabel.streamlines.tck import TckFile
 from nibabel.streamlines.trk import TrkFile
 from PIL import Image
 
+from lib import record, close
+
 import itertools
 import json
 import nibabel as nib
@@ -122,7 +124,8 @@ def save_views_imgs(lines, size=(500, 500), interactive=False, ext='jpg'):
         # Save imgs
         out_file = os.path.join('secondary', param['view'] + '.' + ext)
         print('Saving: {}'.format(out_file))
-        window.record(scene, out_path=out_file, size=size)
+        # window.record(scene, out_path=out_file, size=size)
+        record(scene, out_path=out_file, size=size)
 
     # Stop virtual display
     if has_xvfbwrapper:
@@ -186,7 +189,7 @@ if __name__ == '__main__':
     num_fibers = header.get(num_fibers_tag)
     print(num_fibers_tag, num_fibers)
     lengths = []
-    
+
     if num_fibers:
         num_fibers = int(num_fibers)
         if num_fibers == 0:

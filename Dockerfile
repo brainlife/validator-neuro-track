@@ -14,7 +14,7 @@ RUN pip3 install vtk numpy cython scipy h5py nibabel nipype
 RUN pip3 install cvxpy scikit-learn 
 RUN pip3 install dipy fury joblib nibabel
 
-RUN pip3 install xvfbwrapper
+RUN pip3 install xvfbwrapper vtkmodules
 
 #make it work under singularity
 #RUN ldconfig && mkdir -p /N/u /N/home /N/dc2 /N/soft
