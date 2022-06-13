@@ -3,7 +3,7 @@
 set -e
 
 name=brainlife/validator-neuro-track
-tag=1.0
+tag=1.1
 
 docker build -t $name .
 docker tag $name $name:$tag
