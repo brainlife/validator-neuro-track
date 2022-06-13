@@ -1,4 +1,5 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
+#FROM ubuntu:18.04
 #FROM ubuntu:16.04
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -11,10 +12,10 @@ RUN apt-get install -y xfonts-100dpi xfonts-75dpi xfonts-scalable xfonts-cyrilli
 RUN apt-get install -y python3-pandas
 
 RUN pip3 install vtk numpy cython scipy h5py nibabel nipype
-RUN pip3 install cvxpy scikit-learn 
+RUN pip3 install cvxpy scikit-learn
 RUN pip3 install dipy fury joblib nibabel
 
-RUN pip3 install xvfbwrapper vtkmodules
+RUN pip3 install xvfbwrapper
 
 #make it work under singularity
 #RUN ldconfig && mkdir -p /N/u /N/home /N/dc2 /N/soft
