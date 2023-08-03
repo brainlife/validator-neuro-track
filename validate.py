@@ -14,6 +14,7 @@ import json
 import nibabel as nib
 import numpy as np
 import os
+import time
 
 xvfbwrapper, has_xvfbwrapper, setup_module = optional_package('xvfbwrapper')
 if has_xvfbwrapper:
@@ -103,6 +104,7 @@ def save_views_imgs(lines, size=(500, 500), interactive=False, ext='jpg'):
         print('Starting Xvfb')
         vdisplay = Xvfb()
         vdisplay.start()
+        time.sleep(5)
 
     # Create streamlines actor
     streamlines_actor = actor.line(lines)
